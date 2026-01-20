@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Carmazium - Next-Gen Automotive Marketplace
 
-## Getting Started
+Carmazium is a premium, cinematic-first automotive marketplace built with Next.js 15, Tailwind CSS, and Framer Motion. It bridges the gap between digital convenience and physical showroom luxury.
 
-First, run the development server:
+## 🚀 Usage
+
+### Development
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+Open [http://localhost:3000](http://localhost:3000).
+
+### Build
+
+```bash
+npm run build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+-   **Framework**: Next.js 15 (App Router)
+-   **Styling**: Tailwind CSS v4
+-   **Animation**: Framer Motion
+-   **Icons**: Lucide React
+-   **Fonts**: Poppins & Montserrat
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## ☁️ Deployment
 
-## Learn More
+This project is optimized for deployment on **Vercel**.
 
-To learn more about Next.js, take a look at the following resources:
+1.  Push this repository to GitHub.
+2.  Import the project in Vercel.
+3.  Vercel will automatically detect the Next.js build settings.
+4.  Click **Deploy**.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fpizn-01%2Fcarmazium)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
