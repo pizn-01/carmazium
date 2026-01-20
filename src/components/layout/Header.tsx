@@ -76,15 +76,16 @@ export function Header() {
 
                 {/* Action Buttons */}
                 <div className="flex items-center gap-6">
-                    <Link href="/auth/signup">
-                        <Button
-                            variant="default"
-                            shape="default"
-                            className="hidden md:flex gap-2 font-bold px-6 bg-gradient-to-br from-[#ff4d4d] to-[#ed1c24] hover:from-[#ff6b6b] hover:to-[#ff0033]"
-                        >
+                    <Button
+                        asChild
+                        variant="default"
+                        shape="default"
+                        className="hidden md:flex gap-2 font-bold px-6 bg-gradient-to-br from-[#ff4d4d] to-[#ed1c24] hover:from-[#ff6b6b] hover:to-[#ff0033]"
+                    >
+                        <Link href="/auth/signup">
                             <LogIn size={18} /> Sign Up
-                        </Button>
-                    </Link>
+                        </Link>
+                    </Button>
                 </div>
             </div>
 
@@ -105,9 +106,11 @@ export function Header() {
                                 {link.name}
                             </Link>
                         ))}
-                        <Link href="/auth/signup" onClick={() => setIsMobileMenuOpen(false)} className="mt-4">
-                            <Button className="w-full">Sign Up</Button>
-                        </Link>
+                        <Button asChild className="w-full mt-4">
+                            <Link href="/auth/signup" onClick={() => setIsMobileMenuOpen(false)}>
+                                Sign Up
+                            </Link>
+                        </Button>
                     </nav>
                 </div>
             )}

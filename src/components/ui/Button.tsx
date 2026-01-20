@@ -16,23 +16,23 @@ const buttonVariants = cva(
         variants: {
             variant: {
                 default:
-                    "bg-primary text-white hover:bg-[#c3141b] shadow-lg shadow-primary/40", // Carmazium Red
+                    "bg-gradient-to-r from-primary to-[#d9161d] text-white hover:from-[#ff4d4d] hover:to-primary shadow-lg shadow-primary/25 border-0", // Enhanced gradient & shadow
                 outline:
-                    "border border-primary text-primary hover:bg-primary hover:text-white bg-transparent",
-                dark: "bg-slate-800/60 border border-white/20 text-white hover:bg-slate-800/90 backdrop-blur-sm",
-                ghost: "hover:bg-accent hover:text-accent-foreground",
+                    "border-2 border-primary text-primary hover:bg-primary hover:text-white bg-transparent shadow-neon",
+                dark: "bg-slate-800/80 border border-white/10 text-white hover:bg-slate-700 hover:border-white/20 backdrop-blur-md",
+                ghost: "hover:bg-white/10 hover:text-white",
                 link: "text-primary underline-offset-4 hover:underline",
             },
             size: {
                 default: "h-11 px-6 py-2",
-                sm: "h-9 px-3",
-                lg: "h-14 px-8 text-base",
-                icon: "h-10 w-10",
+                sm: "h-9 px-4 text-xs",
+                lg: "h-14 px-8 text-lg",
+                icon: "h-11 w-11",
             },
             shape: {
-                default: "rounded-none clip-path-carmazium", // Custom class for the polygon
+                default: "clip-path-carmazium", // Uses the utility class we just added
                 pill: "rounded-full",
-                square: "rounded-md",
+                square: "rounded-lg",
             }
         },
         defaultVariants: {

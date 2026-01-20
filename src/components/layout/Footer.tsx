@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/Button"
 
 export function Footer() {
@@ -9,7 +10,16 @@ export function Footer() {
 
                     {/* Brand Column */}
                     <div className="space-y-4">
-                        <h3 className="text-xl font-bold font-heading uppercase tracking-wide">CarMazium</h3>
+                        <Link href="/" className="inline-block">
+                            <Image
+                                src="/assets/images/logo.png"
+                                alt="CarMazium"
+                                width={180}
+                                height={45}
+                                className="h-12 w-auto drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]"
+                                priority
+                            />
+                        </Link>
                         <p className="text-gray-400 text-sm leading-relaxed">
                             Carmazium is a next-generation car marketplace built for buying, selling, and auctioning vehicles securely. We connect buyers and sellers through verified listings and intelligent pricing.
                         </p>
@@ -23,8 +33,10 @@ export function Footer() {
                         <h3 className="text-xl font-bold font-heading uppercase tracking-wide">Page</h3>
                         <ul className="space-y-2 text-gray-400">
                             <li><Link href="/" className="hover:text-primary transition-colors">Home</Link></li>
-                            <li><Link href="/search" className="hover:text-primary transition-colors">Cars</Link></li>
-                            <li><Link href="/contact" className="hover:text-primary transition-colors">Contact</Link></li>
+                            <li><Link href="/search" className="hover:text-primary transition-colors">Buy Cars</Link></li>
+                            <li><Link href="/sell" className="hover:text-primary transition-colors">Sell Cars</Link></li>
+                            <li><Link href="/services" className="hover:text-primary transition-colors">Service Hub</Link></li>
+                            <li><Link href="/about" className="hover:text-primary transition-colors">About</Link></li>
                         </ul>
                     </div>
 

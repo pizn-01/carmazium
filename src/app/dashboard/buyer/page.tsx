@@ -6,6 +6,7 @@ import Image from "next/image"
 import { Button } from "@/components/ui/Button"
 import { CarCard } from "@/components/features/CarCard"
 import { Gavel, Heart, Clock, Settings, LogOut, LayoutDashboard, TrendingUp } from "lucide-react"
+import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar"
 
 export default function BuyerDashboard() {
     return (
@@ -13,40 +14,7 @@ export default function BuyerDashboard() {
             <div className="container mx-auto px-5 flex flex-col lg:flex-row gap-8">
 
                 {/* Sidebar Navigation */}
-                <aside className="lg:w-1/4">
-                    <div className="glass-card p-6 sticky top-24 shadow-lg border-white/5 bg-gradient-to-br from-slate-900/80 to-slate-900/40">
-                        <div className="flex items-center gap-4 mb-8">
-                            <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center text-primary font-bold text-xl border border-primary/50 shadow-neon">JD</div>
-                            <div>
-                                <h3 className="font-bold text-lg text-white">John Doe</h3>
-                                <p className="text-xs text-gray-400">Buyer Account</p>
-                            </div>
-                        </div>
-
-                        <nav className="space-y-2">
-                            <Link href="/dashboard/buyer" className="flex items-center gap-3 px-4 py-3 bg-primary/10 text-primary rounded-lg font-medium border border-primary/20">
-                                <LayoutDashboard size={20} /> Dashboard
-                            </Link>
-                            <Link href="#" className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg hover:text-white transition-colors">
-                                <Gavel size={20} /> My Bids
-                            </Link>
-                            <Link href="#" className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg hover:text-white transition-colors">
-                                <Heart size={20} /> Watchlist
-                            </Link>
-                            <Link href="#" className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg hover:text-white transition-colors">
-                                <Clock size={20} /> Order History
-                            </Link>
-                            <Link href="#" className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg hover:text-white transition-colors">
-                                <Settings size={20} /> Settings
-                            </Link>
-                            <div className="pt-4 mt-4 border-t border-white/10">
-                                <Link href="/auth/login" className="flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors">
-                                    <LogOut size={20} /> Sign Out
-                                </Link>
-                            </div>
-                        </nav>
-                    </div>
-                </aside>
+                <DashboardSidebar role="buyer" userName="John Doe" />
 
                 {/* Main Content */}
                 <main className="lg:w-3/4 space-y-8">

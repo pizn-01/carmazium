@@ -4,44 +4,15 @@ import * as React from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/Button"
 import { LayoutDashboard, Wrench, Calendar, Settings, LogOut, CheckCircle, XCircle, Clock } from "lucide-react"
+import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar"
 
 export default function ServiceDashboard() {
     return (
         <div className="min-h-screen pt-20 pb-12 bg-slate-900">
             <div className="container mx-auto px-5 flex flex-col lg:flex-row gap-8">
 
-                {/* Sidebar Navigation - Dark Glass */}
-                <aside className="lg:w-1/4">
-                    <div className="glass-card p-6 sticky top-24">
-                        <div className="flex items-center gap-4 mb-8">
-                            <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center text-primary font-bold text-xl border border-primary/50 shadow-neon">SP</div>
-                            <div>
-                                <h3 className="font-bold text-lg text-white">Apex Customs</h3>
-                                <p className="text-xs text-gray-400">Service Provider</p>
-                            </div>
-                        </div>
-
-                        <nav className="space-y-2">
-                            <Link href="/dashboard/service" className="flex items-center gap-3 px-4 py-3 bg-primary/10 text-primary rounded-lg font-medium border border-primary/20">
-                                <LayoutDashboard size={20} /> Dashboard
-                            </Link>
-                            <Link href="#" className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg hover:text-white transition-colors">
-                                <Wrench size={20} /> Service Requests
-                            </Link>
-                            <Link href="#" className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg hover:text-white transition-colors">
-                                <Calendar size={20} /> Schedule
-                            </Link>
-                            <Link href="#" className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-white/5 rounded-lg hover:text-white transition-colors">
-                                <Settings size={20} /> Settings
-                            </Link>
-                            <div className="pt-4 mt-4 border-t border-white/10">
-                                <Link href="/auth/login" className="flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors">
-                                    <LogOut size={20} /> Sign Out
-                                </Link>
-                            </div>
-                        </nav>
-                    </div>
-                </aside>
+                {/* Sidebar Navigation */}
+                <DashboardSidebar role="provider" userName="Apex Customs" userType="Service Provider" />
 
                 {/* Main Content */}
                 <main className="lg:w-3/4 space-y-8">
