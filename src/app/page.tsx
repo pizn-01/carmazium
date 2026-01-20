@@ -27,11 +27,11 @@ export default function Home() {
         <div className="absolute inset-0 w-full h-full">
           <video
             autoPlay
-            loop
             muted
             playsInline
             className="absolute top-1/2 left-1/2 min-w-full min-h-full object-cover -translate-x-1/2 -translate-y-1/2"
             poster="/assets/images/hero-bg.png"
+            onEnded={(e) => e.currentTarget.pause()} // Ensure it stays paused
           >
             <source src="/assets/videos/hero-cinematic.mp4" type="video/mp4" />
             {/* Fallback to image if video fails */}
