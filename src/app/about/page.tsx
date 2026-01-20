@@ -29,9 +29,9 @@ export default function AboutPage() {
                     <video
                         autoPlay
                         muted
-                        loop
                         playsInline
                         className="absolute inset-0 w-full h-full object-cover blur-[2px] scale-105"
+                        onEnded={(e) => e.currentTarget.pause()}
                     >
                         <source src="/assets/videos/about-cinematic.mov" type="video/quicktime" />
                         <source src="/assets/videos/about-cinematic.mov" type="video/mp4" /> {/* Fallback if it's actually MP4 container */}
