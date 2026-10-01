@@ -192,6 +192,9 @@ export interface ServiceMarketplaceSettings {
   platformFeeRate: number;
   providerShareRate: number;
   acceptedPaymentTimeoutMinutes: number;
+  // Per-service emergency kill switches (backend service-availability.ts).
+  // Optional so an older backend that omits it reads as "everything open".
+  availability?: Partial<Record<ServiceType, boolean>>;
 }
 
 export interface JobVehicle {
@@ -582,3 +585,110 @@ export async function respondToProviderLead(
   return r.data;
 }
 
+
+
+// ─── Customer: post a job / enquiry ──────────────────────────────────────────
+// Field names mirror web's servicesApi.ts createJob / createServiceLead, which
+// the backend DTOs (CreateJobDto, CreateServiceLeadDto) validate with
+// forbidNonWhitelisted — do not add a key here that web does not send.
+
+export interface CreateServiceJobInput {
+  serviceType: 'DELIVERY' | 'INSPECTION';
+  isRecovery?: boolean;
+  title: string;
+  description?: string;
+  pickupPostcode?: string;
+  pickupAddress?: string;
+  deliveryPostcode?: string;
+  deliveryAddress?: string;
+  servicePostcode?: string;
+  serviceAddress?: string;
+  requestedFor?: string;
+  vehicles: {
+    listingId?: string;
+    registration?: string;
+    make?: string;
+    model?: string;
+    year?: number;
+    notes?: string;
+  }[];
+}
+
+export async function createServiceJob(input: CreateServiceJobInput): Promise<ServiceJob> {
+  const r = await apiClient<{ data: ServiceJob }>('/services/jobs', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return r.data;
+}
+
+export interface CreateServiceLeadInput {
+  serviceType: 'FINANCE' | 'WARRANTY';
+  vehicleRegistration?: string;
+  vehicleMake?: string;
+  vehicleModel?: string;
+  vehicleYear?: number;
+  vehicleMileage?: number;
+  vehicleValuePence?: number;
+  postcode?: string;
+  phone?: string;
+  summary?: string;
+  depositPence?: number;
+  termMonths?: number;
+  monthlyBudgetPence?: number;
+  employmentStatus?: string;
+  annualIncomePence?: number;
+  warrantyMonths?: number;
+  warrantyLevel?: string;
+  consentToProviderContact: boolean;
+}
+
+export async function createServiceLead(input: CreateServiceLeadInput): Promise<ServiceLead> {
+  const r = await apiClient<{ data: ServiceLead }>('/services/leads', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return r.data;
+}
+
+export async function getMyServiceLeadsPage(
+  cursor?: string,
+  limit = 20,
+): Promise<CursorPage<ServiceLead>> {
+  const query = [
+    `limit=${encodeURIComponent(String(limit))}`,
+    cursor ? `cursor=${encodeURIComponent(cursor)}` : null,
+  ].filter(Boolean).join('&');
+  const r = await apiClient<{ data: CursorPage<ServiceLead> }>(`/services/leads/my?${query}`);
+  return r.data;
+}
+
+export async function getCustomerServiceLead(id: string): Promise<ServiceLead> {
+  const r = await apiClient<{ data: ServiceLead }>(`/services/leads/${id}`);
+  return r.data;
+}
+
+export async function closeServiceLead(id: string): Promise<void> {
+  await apiClient(`/services/leads/${id}/close`, { method: 'POST' });
+}
+
+// Delivery job pre-filled from a won auction or an accepted retail offer — the
+// backend resolves pickup (seller postcode) and the vehicle itself, so the only
+// thing the client supplies is where it is going. Exactly one source is allowed.
+export type PurchaseDeliverySource =
+  | { offerId: string; auctionId?: never }
+  | { auctionId: string; offerId?: never };
+
+export async function createJobFromPurchase(
+  input: PurchaseDeliverySource & {
+    deliveryPostcode: string;
+    deliveryAddress?: string;
+    requestedFor?: string;
+  },
+): Promise<ServiceJob> {
+  const r = await apiClient<{ data: ServiceJob }>('/services/jobs/from-purchase', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return r.data;
+}

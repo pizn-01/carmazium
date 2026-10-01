@@ -36,6 +36,7 @@ import { createChatRoom } from '../../lib/chatApi';
 import { apiClient } from '../../lib/apiClient';
 import { DealerAccess, getDealerAccess } from '../../lib/dealerAccessApi';
 import { createInspectionFromAuction } from '../../lib/servicesApi';
+import { ArrangeDeliveryButton } from '../../components/services/ArrangeDeliveryButton';
 import { io } from 'socket.io-client';
 import { getAccessToken } from '../../lib/supabase';
 import { Skeleton } from '../../components/ui/Skeleton';
@@ -1926,6 +1927,13 @@ export const AuctionDetailScreen: React.FC<Props> = ({ route, navigation }) => {
                   Inspect Before Handover
                 </Text>
               </TouchableOpacity>
+            )}
+            {/* TradeXchange delivery for the winner (web: auctions/won ArrangeDelivery).
+                Hidden once the purchase is refused; everything else the backend decides. */}
+            {userWon && !auction?.buyerRefusedAt && auction?.id && (
+              <View style={{ marginTop: 8 }}>
+                <ArrangeDeliveryButton auctionId={auction.id} />
+              </View>
             )}
             {userWon && auction?.buyerRefusedAt && (
               <View style={[s.banner, s.bannerAmber, { marginTop: 8 }]}>

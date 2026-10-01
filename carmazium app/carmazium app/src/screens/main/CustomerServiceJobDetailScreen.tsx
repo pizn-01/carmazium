@@ -7,6 +7,7 @@ import {
   StatusBar,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -24,6 +25,7 @@ import {
   acceptCustomerQuote,
   cancelCustomerServiceJob,
   confirmCustomerServiceJob,
+  createCustomerServiceReview,
   disputeCustomerServiceJob,
   formatPence,
   getCustomerServiceJob,
@@ -49,6 +51,11 @@ export const CustomerServiceJobDetailScreen: React.FC<Props> = ({ navigation, ro
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [flash, setFlash] = useState<string | null>(null);
+  // Web asks "What went wrong?" before raising a dispute and reviews only after
+  // the payout is released. Alert.prompt is iOS-only, so both live inline.
+  const [disputeReason, setDisputeReason] = useState('');
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -163,6 +170,28 @@ export const CustomerServiceJobDetailScreen: React.FC<Props> = ({ navigation, ro
     );
   };
 
+  const submitReview = () => {
+    if (!job) return;
+    if (reviewRating < 1 || reviewRating > 5) {
+      setError('Choose a star rating from 1 to 5.');
+      return;
+    }
+    void run(
+      'review',
+      async () => {
+        await createCustomerServiceReview(job.id, {
+          rating: reviewRating,
+          comment: reviewComment.trim() || undefined,
+        });
+        // Cleared only after the backend accepted it — run() swallows errors, so
+        // clearing afterwards would wipe a typed review on a failed submit.
+        setReviewRating(0);
+        setReviewComment('');
+      },
+      'Thank you. Your verified service review is now published.',
+    );
+  };
+
   const disputeJob = () => {
     if (!job) return;
     Alert.alert(
@@ -175,7 +204,7 @@ export const CustomerServiceJobDetailScreen: React.FC<Props> = ({ navigation, ro
           style: 'destructive',
           onPress: () => void run(
             'dispute',
-            () => disputeCustomerServiceJob(job.id),
+            () => disputeCustomerServiceJob(job.id, disputeReason.trim() || undefined),
             'Dispute raised. CarMazium will review the job.',
           ),
         },
@@ -469,6 +498,16 @@ export const CustomerServiceJobDetailScreen: React.FC<Props> = ({ navigation, ro
                 ? <ActivityIndicator size="small" color={Colors.white} />
                 : <Text style={styles.primaryText}>CONFIRM COMPLETION</Text>}
             </TouchableOpacity>
+            <TextInput
+              style={styles.reasonInput}
+              value={disputeReason}
+              onChangeText={setDisputeReason}
+              placeholder="Something wrong? Tell us what (optional, used if you raise a dispute)"
+              placeholderTextColor={Colors.textMuted}
+              multiline
+              maxLength={500}
+              accessibilityLabel="Dispute reason"
+            />
             <TouchableOpacity
               style={styles.secondaryButton}
               onPress={disputeJob}
@@ -476,6 +515,68 @@ export const CustomerServiceJobDetailScreen: React.FC<Props> = ({ navigation, ro
             >
               <Ionicons name="alert-circle-outline" size={16} color={Colors.warning} />
               <Text style={[styles.secondaryText, { color: Colors.warning }]}>RAISE DISPUTE</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+
+        {/* Verified review — web shows it once the payout is released. The backend
+            decides eligibility (canReview) and the one-review-per-job rule. */}
+        {job.review ? (
+          <View style={styles.card}>
+            <Text style={styles.sectionLabel}>YOUR VERIFIED REVIEW</Text>
+            <View style={styles.starRow} accessibilityLabel={`${job.review.rating} out of 5 stars`}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Ionicons
+                  key={star}
+                  name={star <= job.review!.rating ? 'star' : 'star-outline'}
+                  size={18}
+                  color={star <= job.review!.rating ? Colors.warning : Colors.textMuted}
+                />
+              ))}
+            </View>
+            {job.review.comment ? <Text style={styles.bodyText}>{job.review.comment}</Text> : null}
+          </View>
+        ) : job.canReview ? (
+          <View style={styles.card}>
+            <Text style={styles.sectionLabel}>REVIEW YOUR {isInspection ? 'INSPECTOR' : 'TRANSPORTER'}</Text>
+            <Text style={styles.bodyText}>
+              Only customers from a completed, paid TradeXchange job can leave this review.
+            </Text>
+            <View style={styles.starRow}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <TouchableOpacity
+                  key={star}
+                  onPress={() => setReviewRating(star)}
+                  hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Rate ${star} star${star === 1 ? '' : 's'}`}
+                >
+                  <Ionicons
+                    name={star <= reviewRating ? 'star' : 'star-outline'}
+                    size={28}
+                    color={star <= reviewRating ? Colors.warning : Colors.textMuted}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TextInput
+              style={styles.reasonInput}
+              value={reviewComment}
+              onChangeText={setReviewComment}
+              placeholder="Add a comment (optional)"
+              placeholderTextColor={Colors.textMuted}
+              multiline
+              maxLength={2000}
+              accessibilityLabel="Review comment"
+            />
+            <TouchableOpacity
+              style={[styles.primaryButton, (busy === 'review' || reviewRating === 0) && styles.disabled]}
+              disabled={busy === 'review' || reviewRating === 0}
+              onPress={submitReview}
+            >
+              {busy === 'review'
+                ? <ActivityIndicator size="small" color={Colors.white} />
+                : <Text style={styles.primaryText}>SUBMIT VERIFIED REVIEW</Text>}
             </TouchableOpacity>
           </View>
         ) : null}
@@ -588,6 +689,20 @@ const styles = StyleSheet.create({
   },
   dangerText: { fontFamily: FontFamily.bold, fontSize: FontSize.xs, color: Colors.white },
   disabled: { opacity: 0.6 },
+  starRow: { flexDirection: 'row', gap: 6, alignItems: 'center' },
+  reasonInput: {
+    fontFamily: FontFamily.regular,
+    fontSize: FontSize.sm,
+    color: Colors.white,
+    backgroundColor: Colors.whiteAlpha05,
+    borderWidth: 1,
+    borderColor: Colors.whiteAlpha10,
+    borderRadius: Radius.inline,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    minHeight: 64,
+    textAlignVertical: 'top',
+  },
   actionRow: { flexDirection: 'row', gap: 10, flexWrap: 'wrap' },
   cancelButton: { alignSelf: 'center', flexDirection: 'row', gap: 7, alignItems: 'center', padding: 12 },
   cancelText: { fontFamily: FontFamily.medium, fontSize: FontSize.xs, color: Colors.textMuted },

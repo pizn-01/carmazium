@@ -42,6 +42,15 @@ import { useAuthStore } from '../../store/authStore';
 
 import { IconButton } from '../../components/IconButton';
 import { HamburgerButton } from '../../components/HamburgerButton';
+// Mirrors web's stageFor() in dashboard/dealer/auctions/won/page.tsx, plus the
+// refused state mobile already reads elsewhere (buyerRefusedAt).
+const wonHandoverStage = (a: WonAuctionItem): { label: string; color: string } => {
+  if (a.buyerRefusedAt) return { label: 'Purchase refused after inspection', color: Colors.warning };
+  if (!a.buyerFeePaid) return { label: 'Payment needed · pay the £125 buyer fee', color: Colors.warning };
+  if (a.sellerBonusReleased) return { label: 'Handover complete', color: Colors.success };
+  return { label: 'Handover in progress', color: Colors.textSecondary };
+};
+
 // ─────────────────────────── Types ───────────────────────────
 
 type AuctionStatus = 'SCHEDULED' | 'ACTIVE' | 'ENDED' | 'CANCELLED';
@@ -57,6 +66,10 @@ interface WonAuctionItem {
   status: AuctionStatus;
   endTime: string;
   winningBidAmount?: number | null;
+  // Handover state, as web's dealer won list derives its stage from.
+  buyerFeePaid?: boolean | null;
+  sellerBonusReleased?: boolean | null;
+  buyerRefusedAt?: string | null;
   listing: {
     id: string;
     title?: string | null;
@@ -167,7 +180,7 @@ export const SellerAuctionsScreen: React.FC<{ navigation?: any }> = ({ navigatio
   const [wonLoading, setWonLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabFilter>('ALL');
+  const [activeTab, setActiveTab] = useState<TabFilter>(route.params?.initialTab === 'WON' ? 'WON' : 'ALL');
   const [navigating, setNavigating] = useState<string | null>(null);
 
   // Stripe Connect payout readiness. A seller can otherwise complete a handover,
@@ -1227,6 +1240,7 @@ export const SellerAuctionsScreen: React.FC<{ navigation?: any }> = ({ navigatio
       || [item.listing.seller?.firstName, item.listing.seller?.lastName].filter(Boolean).join(' ')
       || 'Private seller';
     const isLoadingNav = navigating === item.id;
+    const stage = wonHandoverStage(item);
 
     return (
       <TouchableOpacity
@@ -1249,6 +1263,7 @@ export const SellerAuctionsScreen: React.FC<{ navigation?: any }> = ({ navigatio
             <Text style={styles.cardTitle} numberOfLines={1}>{listingTitle}</Text>
             <Text style={styles.cardPrice}>Won for {wonFor}</Text>
             <Text style={styles.cardMeta} numberOfLines={1}>{sellerName} · Ended {fmtDate(item.endTime)}</Text>
+            <Text style={[styles.cardMeta, { color: stage.color }]} numberOfLines={1}>{stage.label}</Text>
           </View>
           <View style={styles.cardRight}>
             <View style={[styles.statusChip, { backgroundColor: Colors.successAlpha15 }]}>

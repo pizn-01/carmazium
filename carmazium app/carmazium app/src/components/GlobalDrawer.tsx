@@ -41,6 +41,8 @@ interface MenuItem {
   iconLib: 'ion' | 'mci';
   tabName?: keyof TabParamList;
   stackScreen?: keyof MainStackParamList;
+  // Route params for `stackScreen` (e.g. open SellerAuctions on its Won tab).
+  stackParams?: Record<string, unknown>;
   action?: 'alert';
   alertTitle?: string;
   alertMsg?: string;
@@ -125,6 +127,15 @@ const USER_ITEMS: MenuItem[] = [
     icon: 'hammer-outline',
     iconLib: 'ion',
     stackScreen: 'BuyerBids',
+  },
+  {
+    // GET /auctions/my/won via the Won tab of SellerAuctions. Web: auctions/won.
+    id: 'user-won',
+    label: 'Won auctions',
+    icon: 'trophy-outline',
+    iconLib: 'ion',
+    stackScreen: 'SellerAuctions',
+    stackParams: { initialTab: 'WON' },
   },
   {
     id: 'user-purchases',
@@ -222,6 +233,46 @@ const DEALER_ITEMS: MenuItem[] = [
     icon: 'heart-outline',
     iconLib: 'ion',
     tabName: 'Saved',
+  },
+  {
+    // Web: /dashboard/dealer/bids, gated on VIEW_TRADE (dealerRouteConfig.ts).
+    // BuyerBidsScreen reads the same /bids/my web's page does and already
+    // renders won auctions, but dealers had no menu path to it — only the
+    // buyer/seller group listed it, and that group is hidden for role 'dealer'.
+    id: 'dealer-bids',
+    requiredPermission: 'VIEW_TRADE',
+    label: 'My Auction Bids',
+    icon: 'gavel',
+    iconLib: 'mci',
+    stackScreen: 'BuyerBids',
+  },
+  {
+    // Web: /dashboard/dealer/auctions/won. The backend resolves the won list with
+    // VIEW_PURCHASES for dealership staff (auctions.service findWonAuctions), so
+    // that is the permission this entry needs — not VIEW_TRADE like bids.
+    id: 'dealer-won',
+    requiredPermission: 'VIEW_PURCHASES',
+    label: 'Won Auctions',
+    icon: 'trophy-outline',
+    iconLib: 'ion',
+    stackScreen: 'SellerAuctions',
+    stackParams: { initialTab: 'WON' },
+  },
+  {
+    // Web: /dashboard/dealer/messages (no permission gate).
+    id: 'dealer-messages',
+    label: 'Messages',
+    icon: 'chatbubbles-outline',
+    iconLib: 'ion',
+    stackScreen: 'Messages',
+  },
+  {
+    // Web: dealer "Cancellations" — buyer and seller cancellation requests.
+    id: 'dealer-cancellations',
+    label: 'Sale Cancellations',
+    icon: 'close-circle-outline',
+    iconLib: 'ion',
+    stackScreen: 'SaleCancellations',
   },
   {
     id: 'dealer-analytics',
@@ -389,7 +440,7 @@ export const GlobalDrawer: React.FC = () => {
       if (item.stackScreen) {
         // `stackScreen` is a dynamic union of route names — React Navigation's
         // recommended pattern for variable screen names is `as never`.
-        navigation.navigate('Main', { screen: item.stackScreen } as never);
+        navigation.navigate('Main', { screen: item.stackScreen, params: item.stackParams } as never);
         return;
       }
       if (item.tabName) {

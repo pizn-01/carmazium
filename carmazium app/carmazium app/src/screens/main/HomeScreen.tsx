@@ -596,6 +596,8 @@ export const HomeScreen: React.FC = () => {
         >
           {[
             { label: 'Live Auctions', icon: 'hammer-outline', color: Colors.accent, screen: 'Live', params: undefined },
+            // Web's header shows TradeXchange to every account, so no role gate.
+            { label: 'TradeXchange', icon: 'construct-outline', color: Colors.infoBlueLight, screen: 'Services', params: undefined },
             { label: 'Under £15k', icon: 'pricetag-outline', color: Colors.accentGreen, screen: 'Search', params: { maxPrice: 15000, _t: 0 } },
             { label: 'Electric', icon: 'flash-outline', color: Colors.warning, screen: 'Search', params: { fuelType: 'Electric', _t: 0 } },
             { label: 'SUV', icon: 'car-sharp', color: Colors.infoBlue, screen: 'Search', params: { bodyType: 'SUV', _t: 0 } },
@@ -759,17 +761,34 @@ export const HomeScreen: React.FC = () => {
         {(() => {
           const showAuctionRow = liveAuctions.length > 0;
           const showDealerRow = role !== 'dealer';
-          if (!showAuctionRow && !showDealerRow) return null;
-          // Divider only between two rows — a style-level border-bottom on
-          // every row would leave a stray trailing line when just one shows.
-          const dividerStyle = showAuctionRow && showDealerRow
-            ? { borderBottomWidth: 1, borderBottomColor: Colors.borderSubtle }
-            : undefined;
+          // Divider between rows only — a style-level border-bottom on every
+          // row would leave a stray trailing line after the last one. The
+          // TradeXchange row is always present, so it is never last-and-alone.
+          const dividerStyle = { borderBottomWidth: 1, borderBottomColor: Colors.borderSubtle };
           return (
             <View style={s.secondaryRows}>
+              {/* TradeXchange hub (Services). Web exposes it in the header for
+                  every account; the verified-dealer rule applies to bidding,
+                  not to these service pages. */}
+              <TouchableOpacity
+                style={[s.utilityRow, (showAuctionRow || showDealerRow) && dividerStyle]}
+                onPress={() => navigation.navigate('Services')}
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel="TradeXchange services"
+              >
+                <View style={s.utilityRowIconWrap}>
+                  <Ionicons name="construct-outline" size={16} color={Colors.infoBlueLight} />
+                </View>
+                <Text style={s.utilityRowText} numberOfLines={1}>
+                  TradeXchange · delivery, inspection, finance &amp; warranty
+                </Text>
+                <Ionicons name="chevron-forward" size={16} color={Colors.iconMuted} accessibilityElementsHidden importantForAccessibility="no" />
+              </TouchableOpacity>
+
               {showAuctionRow && (
                 <TouchableOpacity
-                  style={[s.utilityRow, dividerStyle]}
+                  style={[s.utilityRow, showDealerRow && dividerStyle]}
                   onPress={() => navigation.navigate('Tabs', { screen: 'Live' })}
                   activeOpacity={0.7}
                 >

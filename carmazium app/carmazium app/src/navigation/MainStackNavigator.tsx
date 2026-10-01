@@ -28,6 +28,10 @@ import { DealerFinanceScreen } from '../screens/main/DealerFinanceScreen';
 import { ServicesScreen } from '../screens/main/ServicesScreen';
 import { CustomerServiceJobsScreen } from '../screens/main/CustomerServiceJobsScreen';
 import { CustomerServiceJobDetailScreen } from '../screens/main/CustomerServiceJobDetailScreen';
+import { ServiceJobNewScreen } from '../screens/main/ServiceJobNewScreen';
+import { ServiceLeadNewScreen } from '../screens/main/ServiceLeadNewScreen';
+import { ServiceLeadsScreen } from '../screens/main/ServiceLeadsScreen';
+import { ServiceLeadDetailScreen } from '../screens/main/ServiceLeadDetailScreen';
 import { PartnerDashboardScreen } from '../screens/main/PartnerDashboardScreen';
 import { ProviderCapabilitiesScreen } from '../screens/main/ProviderCapabilitiesScreen';
 import { ProviderVerificationScreen } from '../screens/main/ProviderVerificationScreen';
@@ -121,6 +125,13 @@ export type MainStackParamList = {
   Services: undefined;
   CustomerServiceJobs: undefined;
   CustomerServiceJobDetail: { jobId: string };
+  // Post a delivery/recovery or inspection job (POST /services/jobs).
+  ServiceJobNew: { serviceType: 'DELIVERY' | 'INSPECTION' };
+  // Post a finance or warranty enquiry (POST /services/leads), then read the
+  // provider responses on ServiceLeadDetail.
+  ServiceLeadNew: { serviceType: 'FINANCE' | 'WARRANTY' };
+  ServiceLeads: undefined;
+  ServiceLeadDetail: { leadId: string };
   PartnerDashboard: undefined;
   ProviderCapabilities: undefined;
   ProviderVerification: { capabilityId: string };
@@ -164,7 +175,7 @@ export type MainStackParamList = {
   } | undefined;
   SellCarFlow: { listingId?: string } | undefined;
   SellerListings: undefined;
-  SellerAuctions: { preselectListingId?: string } | undefined;
+  SellerAuctions: { preselectListingId?: string; initialTab?: 'WON' } | undefined;
   BuyerDashboard: undefined;
   SellerDashboard: undefined;
   UnifiedDashboard: undefined;
@@ -293,6 +304,10 @@ export const MainStackNavigator: React.FC = () => {
       <Stack.Screen name="Services" component={ServicesScreen} options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="CustomerServiceJobs" component={CustomerServiceJobsScreen} options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="CustomerServiceJobDetail" component={CustomerServiceJobDetailScreen} options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="ServiceJobNew" component={ServiceJobNewScreen} options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="ServiceLeadNew" component={ServiceLeadNewScreen} options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="ServiceLeads" component={ServiceLeadsScreen} options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="ServiceLeadDetail" component={ServiceLeadDetailScreen} options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="PartnerDashboard" component={PartnerDashboardScreen} options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="ProviderCapabilities" component={ProviderCapabilitiesScreen} options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="ProviderVerification" component={ProviderVerificationScreen} options={{ animation: 'slide_from_right' }} />

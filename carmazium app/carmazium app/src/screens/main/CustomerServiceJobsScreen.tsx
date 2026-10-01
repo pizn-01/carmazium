@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   RefreshControl,
   StatusBar,
@@ -83,6 +84,14 @@ export const CustomerServiceJobsScreen: React.FC<Props> = ({ navigation }) => {
     setNextCursor(null);
     void load('reset');
   }, [load]);
+
+  // Mirrors web's /services/jobs/new chooser: delivery/recovery or inspection.
+  const postJob = () =>
+    Alert.alert('Post a job', 'What do you need?', [
+      { text: 'Delivery, collection or recovery', onPress: () => navigation.navigate('ServiceJobNew', { serviceType: 'DELIVERY' }) },
+      { text: 'Vehicle inspection', onPress: () => navigation.navigate('ServiceJobNew', { serviceType: 'INSPECTION' }) },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
 
   const renderJob = ({ item: job }: { item: ServiceJob }) => (
     <TouchableOpacity
@@ -169,6 +178,12 @@ export const CustomerServiceJobsScreen: React.FC<Props> = ({ navigation }) => {
           <Text style={styles.headerTitle}>My Service Jobs</Text>
           <Text style={styles.headerSub}>Delivery & inspection requests</Text>
         </View>
+        <IconButton
+          style={styles.headerButton}
+          icon={<Ionicons name="add" size={21} color={Colors.white} />}
+          onPress={postJob}
+          accessibilityLabel="Post a job"
+        />
         <HamburgerButton />
       </View>
 
@@ -188,7 +203,7 @@ export const CustomerServiceJobsScreen: React.FC<Props> = ({ navigation }) => {
           <Ionicons name="briefcase-outline" size={34} color={Colors.textMuted} />
           <Text style={styles.emptyTitle}>No service jobs yet</Text>
           <Text style={styles.emptyText}>
-            Inspection and delivery requests you create through CarMazium will appear here.
+            Post a delivery or inspection job with the + button and it will appear here.
           </Text>
         </View>
       ) : (

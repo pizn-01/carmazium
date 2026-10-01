@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ScrollView,
   StatusBar,
@@ -16,6 +16,7 @@ import { Colors } from '../../constants/colors';
 import { FontFamily, FontSize } from '../../constants/typography';
 import { Radius } from '../../constants/spacing';
 import { MainStackParamList } from '../../navigation/MainStackNavigator';
+import { ServiceType, getServiceSettings } from '../../lib/servicesApi';
 
 import { IconButton } from '../../components/IconButton';
 import { HamburgerButton } from '../../components/HamburgerButton';
@@ -24,62 +25,60 @@ type NavProp = NativeStackNavigationProp<MainStackParamList>;
 // ─────────────────────────── data ──────────────────────────────────
 
 interface ServiceItem {
+  type: ServiceType;
   title: string;
   desc: string;
+  cta: string;
   icon: string;
   color: string;
   bg: string;
   border: string;
 }
 
+// The four live TradeXchange services — the same four web's header menu and
+// backend `serviceAvailabilitySnapshot()` know about. Maintenance and Insurance
+// were listed here before but have no web page, no backend service type and no
+// flow, so tapping them could never have gone anywhere.
 const SERVICES: ServiceItem[] = [
   {
-    title: 'Vehicle Delivery',
-    desc: 'Professional vehicle delivery — your car gets transported to your door safely and on schedule, via trusted third-party couriers.',
+    type: 'DELIVERY',
+    title: 'Delivery & Recovery',
+    desc: 'Post a job and approved transport providers compete with fixed-price quotes to move or recover your vehicle.',
+    cta: 'Post a delivery job',
     icon: 'car-outline',
     color: Colors.infoBlueLight,
     bg: Colors.infoBlueAlpha10,
     border: 'rgba(59,130,246,0.22)',
   },
   {
-    title: 'Car Inspection',
-    desc: 'Connect with certified inspectors who carry out detailed, independent vehicle evaluations before you commit to a purchase.',
+    type: 'INSPECTION',
+    title: 'Vehicle Inspection',
+    desc: 'Ask an approved inspector for an independent check before you buy or collect, then compare their quotes.',
+    cta: 'Request an inspection',
     icon: 'search-outline',
     color: Colors.lightGreen_34d399,
     bg: 'rgba(16,185,129,0.10)',
     border: 'rgba(16,185,129,0.22)',
   },
   {
-    title: 'Warranty Coverage',
-    desc: 'Extended third-party warranty options give you protection against unexpected mechanical or electrical failures after purchase.',
-    icon: 'ribbon-outline',
-    color: Colors.palePurple_c084fc,
-    bg: 'rgba(168,85,247,0.10)',
-    border: 'rgba(168,85,247,0.22)',
-  },
-  {
-    title: 'Vehicle Financing',
-    desc: 'Get matched with finance providers offering structured payment plans and pre-approvals tailored to your budget.',
+    type: 'FINANCE',
+    title: 'Vehicle Finance',
+    desc: 'Send one enquiry and matched, approved finance providers reply with their options.',
+    cta: 'Start a finance enquiry',
     icon: 'cash-outline',
     color: Colors.lightOrange_fbbf24,
     bg: Colors.warningAlpha10,
     border: 'rgba(245,158,11,0.22)',
   },
   {
-    title: 'Maintenance',
-    desc: 'Find trusted garages and mobile mechanics for routine servicing, repairs, and specialist maintenance work near you.',
-    icon: 'build-outline',
-    color: Colors.accent,
-    bg: Colors.accentAlpha10,
-    border: Colors.accentAlpha22,
-  },
-  {
-    title: 'Insurance',
-    desc: 'Compare comprehensive vehicle insurance options from trusted providers, with coverage levels to suit every driver.',
-    icon: 'umbrella-outline',
-    color: Colors.lightTeal_22d3ee,
-    bg: 'rgba(34,211,238,0.10)',
-    border: 'rgba(34,211,238,0.22)',
+    type: 'WARRANTY',
+    title: 'Warranty',
+    desc: 'Request cover and matched, approved warranty providers reply with their products and prices.',
+    cta: 'Start a warranty enquiry',
+    icon: 'ribbon-outline',
+    color: Colors.palePurple_c084fc,
+    bg: 'rgba(168,85,247,0.10)',
+    border: 'rgba(168,85,247,0.22)',
   },
 ];
 
@@ -88,6 +87,25 @@ const SERVICES: ServiceItem[] = [
 export const ServicesScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavProp>();
+  // Backend kill switches (GET /services/settings → availability). Start
+  // optimistic: a failed or older-backend response must not hide live services.
+  const [availability, setAvailability] = useState<Partial<Record<ServiceType, boolean>>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+    getServiceSettings()
+      .then((settings) => { if (!cancelled) setAvailability(settings.availability ?? {}); })
+      .catch(() => undefined);
+    return () => { cancelled = true; };
+  }, []);
+
+  const openService = (type: ServiceType) => {
+    if (type === 'DELIVERY' || type === 'INSPECTION') {
+      navigation.navigate('ServiceJobNew', { serviceType: type });
+    } else {
+      navigation.navigate('ServiceLeadNew', { serviceType: type });
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -139,6 +157,23 @@ export const ServicesScreen: React.FC = () => {
         </TouchableOpacity>
 
         <TouchableOpacity
+          style={styles.customerJobsCard}
+          activeOpacity={0.85}
+          onPress={() => navigation.navigate('ServiceLeads')}
+        >
+          <View style={styles.customerJobsIcon}>
+            <Ionicons name="chatbubbles-outline" size={22} color={Colors.infoBlueLight} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.partnerTitle}>My enquiries</Text>
+            <Text style={styles.partnerText}>
+              See the finance and warranty enquiries you have sent and the responses from providers.
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
           style={styles.partnerCard}
           activeOpacity={0.85}
           onPress={() => navigation.navigate('PartnerDashboard')}
@@ -155,17 +190,33 @@ export const ServicesScreen: React.FC = () => {
           <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
         </TouchableOpacity>
 
-        {SERVICES.map((service) => (
-          <View key={service.title} style={styles.card}>
-            <View style={[styles.iconWrap, { backgroundColor: service.bg, borderColor: service.border }]}>
-              <Ionicons name={service.icon} size={22} color={service.color} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.cardTitle}>{service.title}</Text>
-              <Text style={styles.cardDesc}>{service.desc}</Text>
-            </View>
-          </View>
-        ))}
+        {SERVICES.map((service) => {
+          const live = availability[service.type] !== false;
+          return (
+            <TouchableOpacity
+              key={service.type}
+              style={[styles.card, !live && styles.cardOff]}
+              activeOpacity={0.85}
+              disabled={!live}
+              onPress={() => openService(service.type)}
+              accessibilityRole="button"
+              accessibilityState={{ disabled: !live }}
+              accessibilityLabel={live ? service.cta : `${service.title} is temporarily not accepting new requests`}
+            >
+              <View style={[styles.iconWrap, { backgroundColor: service.bg, borderColor: service.border }]}>
+                <Ionicons name={service.icon} size={22} color={service.color} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.cardTitle}>{service.title}</Text>
+                <Text style={styles.cardDesc}>{service.desc}</Text>
+                <Text style={[styles.cardCta, { color: live ? service.color : Colors.textMuted }]}>
+                  {live ? service.cta : 'Temporarily not accepting new requests'}
+                </Text>
+              </View>
+              {live ? <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} /> : null}
+            </TouchableOpacity>
+          );
+        })}
 
         <View style={styles.noteCard}>
           <Ionicons name="information-circle-outline" size={18} color={Colors.textSecondary} accessibilityElementsHidden importantForAccessibility="no" />
@@ -208,6 +259,8 @@ const styles = StyleSheet.create({
     color: Colors.white,
   },
   headerPlaceholder: { width: 38 },
+  cardOff: { opacity: 0.55 },
+  cardCta: { fontFamily: FontFamily.bold, fontSize: FontSize.sm, marginTop: 8 },
 
   scroll: { flex: 1 },
   scrollContent: {

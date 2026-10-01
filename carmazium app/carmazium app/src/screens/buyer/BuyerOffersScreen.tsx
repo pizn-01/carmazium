@@ -19,6 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
 import { apiClient } from '../../lib/apiClient';
+import { ArrangeDeliveryButton } from '../../components/services/ArrangeDeliveryButton';
 import { Colors } from '../../constants/colors';
 import { FontFamily, FontSize } from '../../constants/typography';
 import { Radius } from '../../constants/spacing';
@@ -643,6 +644,10 @@ export const BuyerOffersScreen: React.FC<{ navigation?: any }> = ({ navigation }
                 </Text>
               </TouchableOpacity>
             </View>
+            {/* TradeXchange delivery — for every accepted offer, whether or not
+                the seller offers delivery themselves (web: buyer/offers
+                ArrangeDelivery offerId). The backend decides eligibility. */}
+            <ArrangeDeliveryButton offerId={offer.id} />
           </>
         )}
 

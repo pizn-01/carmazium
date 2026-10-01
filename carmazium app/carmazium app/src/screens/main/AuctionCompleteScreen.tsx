@@ -14,6 +14,7 @@ import {
 import { Image } from 'expo-image';
 import { Ionicons } from '@/components/BrandIcon';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ArrangeDeliveryButton } from '../../components/services/ArrangeDeliveryButton';
 import { LinearGradient } from 'expo-linear-gradient';
 import {FontFamily, FontSize } from '../../constants/typography';
 import { Radius } from '../../constants/spacing';
@@ -478,6 +479,14 @@ export const AuctionCompleteScreen: React.FC<{ navigation?: any; route?: any }> 
               )}
             </View>
           )}
+
+          {/* TradeXchange delivery, offered straight after the win (web: auctions/won
+              ArrangeDelivery). The backend decides eligibility. */}
+          {auctionId ? (
+            <View style={{ marginBottom: 10 }}>
+              <ArrangeDeliveryButton auctionId={auctionId} />
+            </View>
+          ) : null}
 
           <TouchableOpacity
             style={{

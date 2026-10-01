@@ -87,6 +87,12 @@ export const linking: LinkingOptions<RootStackParamList> = {
             path: 'services/jobs/:jobId',
             parse: { jobId: (jobId: string) => jobId },
           },
+          // Web's enquiry URLs: /services/leads and /services/leads/:id.
+          ServiceLeads: 'services/leads',
+          ServiceLeadDetail: {
+            path: 'services/leads/:leadId',
+            parse: { leadId: (leadId: string) => leadId },
+          },
           SellerListings: 'dashboard/listings',
           SellerAuctions: 'dashboard/auctions',
           BuyerOffers: 'dashboard/offers',
