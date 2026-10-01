@@ -2810,3 +2810,20 @@ Runtime/external evidence still required before a specific release is called ful
 **External release blockers.** Both `/.well-known/assetlinks.json` and `/.well-known/apple-app-site-association` return 404. The actual Android signing fingerprint and Apple Team/app identifier are not stored in the repository, and the iOS EAS submit values remain placeholders. No signed store artefact or physical-device pass is claimed.
 
 **Programme state:** Blocks 1–10 complete at the code-contract/live-web level. Native store release remains on HOLD until the strict external gate can pass.
+
+
+### 2026-10-01 — TX pass logged (TradeXchange) — not an audit
+
+29 rows added to `PARITY-MATRIX.md` as `TX-001`..`TX-029`, plus `CROSS-027` (Home entry point).
+The matrix had no TradeXchange rows before this.
+
+- **9 `NEEDS_VERIFICATION`** (TX-001..009): code written this session (commits `b8d37b40`, `319c1d73`),
+  checked only by reading against the backend DTOs/controllers and web; **never run on a device**.
+- **20 `UNAUDITED`** (TX-010..029): the rest of the TradeXchange surface. New status, makes no claim
+  about mobile. Web column is the route path only. Pick these up with a real trace (UI → nav → API → render).
+- Checked this session: `npx tsc --noEmit` (only the 4 missing-module errors from this machine's
+  incomplete `node_modules`) and `node scripts/check-product-parity.mjs` (passes).
+- Device checklist: `docs/MOBILE_TRADEXCHANGE_TEST_CHECKLIST.md`.
+- Things seen but not resolved, kept in the rows rather than fixed: Stripe Connect return URL points at
+  the website (TX-023); `notificationRouting.ts` has no service/lead/job lines (TX-027); Home chip stays
+  visible when a service is paused (CROSS-027).
