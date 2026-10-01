@@ -440,7 +440,11 @@ export const GlobalDrawer: React.FC = () => {
       if (item.stackScreen) {
         // `stackScreen` is a dynamic union of route names — React Navigation's
         // recommended pattern for variable screen names is `as never`.
-        navigation.navigate('Main', { screen: item.stackScreen, params: item.stackParams } as never);
+        // Fresh `_t` on every tap: React Navigation reuses an already-open screen
+        // and only updates params, so identical params would not re-trigger a
+        // screen that reacts to them (e.g. SellerAuctions → Won tab).
+        const params = item.stackParams ? { ...item.stackParams, _t: Date.now() } : undefined;
+        navigation.navigate('Main', { screen: item.stackScreen, params } as never);
         return;
       }
       if (item.tabName) {

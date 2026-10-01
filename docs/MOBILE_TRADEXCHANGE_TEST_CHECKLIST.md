@@ -84,7 +84,7 @@ approved capability (admin approves on web) to see the provider screens.
 | 7.3 | Staff **without** `VIEW_PURCHASES` | No "Won Auctions" |
 | 7.4 | Drawer → Won Auctions (buyer and dealer) | Opens My Auctions **on the Won tab** |
 | 7.5 | Won rows | Third line shows: Payment needed / Handover in progress / Handover complete / Purchase refused |
-| 7.6 | Open Won Auctions while My Auctions is already open on another tab | May stay on the current tab (initial-tab param is read once) — note whether this matters |
+| 7.6 | Open My Auctions, switch to Live/All, then drawer → Won Auctions (twice in a row, switching tab between) | Switches to the Won tab each time (params carry a `_t` nonce) |
 
 ## 8. Provider side (unchanged code — first real run)
 Partner dashboard → Service areas (apply) → Verification (document upload, multipart) →

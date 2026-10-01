@@ -295,6 +295,16 @@ export const SellerAuctionsScreen: React.FC<{ navigation?: any }> = ({ navigatio
 
   useEffect(() => { fetchAuctions(); fetchWonAuctions(); }, [fetchAuctions, fetchWonAuctions]);
 
+  // The tab is only seeded from the param on first mount, so a drawer tap while
+  // this screen is already open (React Navigation reuses it and just updates
+  // params) was ignored. Re-apply on every navigation: `_t` makes a repeat tap
+  // with identical params still change the dependency.
+  const requestedTab = route.params?.initialTab;
+  const requestedTabNonce = route.params?._t;
+  useEffect(() => {
+    if (requestedTab === 'WON') setActiveTab('WON');
+  }, [requestedTab, requestedTabNonce]);
+
   // ── Tab counts ──
   const counts: Record<TabFilter, number> = {
     ALL:       auctions.length,

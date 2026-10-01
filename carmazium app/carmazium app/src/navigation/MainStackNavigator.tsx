@@ -175,7 +175,8 @@ export type MainStackParamList = {
   } | undefined;
   SellCarFlow: { listingId?: string } | undefined;
   SellerListings: undefined;
-  SellerAuctions: { preselectListingId?: string; initialTab?: 'WON' } | undefined;
+  // `_t` is a timestamp nonce so repeating the same initialTab still re-applies it.
+  SellerAuctions: { preselectListingId?: string; initialTab?: 'WON'; _t?: number } | undefined;
   BuyerDashboard: undefined;
   SellerDashboard: undefined;
   UnifiedDashboard: undefined;
