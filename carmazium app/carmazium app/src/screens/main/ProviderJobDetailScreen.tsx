@@ -32,6 +32,8 @@ import {
 } from '../../lib/servicesApi';
 import { getOrCreateServiceJobRoom } from '../../lib/chatApi';
 import { IconButton } from '../../components/IconButton';
+import { KeyboardStickyView } from '../../components/KeyboardStickyView';
+import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 
 type Props = NativeStackScreenProps<MainStackParamList, 'ProviderJobDetail'>;
 
@@ -68,9 +70,15 @@ export const ProviderJobDetailScreen: React.FC<Props> = ({ navigation, route }) 
   const [inspectionOutcome, setInspectionOutcome] = useState<'' | 'PASS' | 'FAULTS_FOUND'>('');
   const [inspectionSummary, setInspectionSummary] = useState('');
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  // `silent` reloads (after an action, on focus/foreground) must not blank the
+  // screen, replace what the provider is typing, or surface an error banner for a
+  // background failure. Only the first load shows the spinner and hydrates the
+  // form from the server.
+  const load = useCallback(async (silent = false) => {
+    if (!silent) {
+      setLoading(true);
+      setError(null);
+    }
     try {
       const [nextJob, nextSettings] = await Promise.all([
         getProviderJob(jobId),
@@ -79,21 +87,30 @@ export const ProviderJobDetailScreen: React.FC<Props> = ({ navigation, route }) 
       setJob(nextJob);
       setSettings(nextSettings);
 
-      const mine = nextJob.quotes?.[0];
-      if (mine?.status === 'ACTIVE') {
-        setAmount((mine.amountPence / 100).toFixed(2));
-        setQuoteMessage(mine.message || '');
+      if (!silent) {
+        const mine = nextJob.quotes?.[0];
+        if (mine?.status === 'ACTIVE') {
+          setAmount((mine.amountPence / 100).toFixed(2));
+          setQuoteMessage(mine.message || '');
+        }
+        setInspectionOutcome(nextJob.inspectionOutcome || '');
+        setInspectionSummary(nextJob.inspectionSummary || '');
       }
-      setInspectionOutcome(nextJob.inspectionOutcome || '');
-      setInspectionSummary(nextJob.inspectionSummary || '');
     } catch (err: any) {
-      setError(err?.message || 'Could not load this job.');
+      if (!silent) setError(err?.message || 'Could not load this job.');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [jobId]);
 
   useEffect(() => { void load(); }, [load]);
+
+  // Come back to an up-to-date job after the customer accepts/pays elsewhere.
+  // OPEN and ACCEPTED are the states the provider is waiting on someone else for.
+  useAutoRefresh(
+    () => load(true),
+    { intervalMs: job?.status === 'OPEN' || job?.status === 'ACCEPTED' ? 20_000 : null },
+  );
 
   const myQuote = job?.quotes?.[0];
   const isMine = job?.viewerRole === 'contractor';
@@ -103,7 +120,9 @@ export const ProviderJobDetailScreen: React.FC<Props> = ({ navigation, route }) 
   );
 
   const amountPence = useMemo(() => {
-    const parsed = Number(amount);
+    // "1,200" or "1 200" is a normal way to type £1,200; Number() would give NaN
+    // and silently disable the button with no explanation.
+    const parsed = Number(amount.replace(/[,\s]/g, ''));
     return Number.isFinite(parsed) ? Math.round(parsed * 100) : 0;
   }, [amount]);
 
@@ -125,7 +144,7 @@ export const ProviderJobDetailScreen: React.FC<Props> = ({ navigation, route }) 
     try {
       await action();
       setFlash(success);
-      await load();
+      await load(true);
     } catch (err: any) {
       setError(err?.message || 'Something went wrong.');
     } finally {
@@ -134,8 +153,13 @@ export const ProviderJobDetailScreen: React.FC<Props> = ({ navigation, route }) 
   };
 
   const sendQuote = async () => {
-    if (!job || amountPence < 100) {
+    if (!job) return;
+    if (amountPence < 100) {
       setError('Enter a quote of at least £1.00.');
+      return;
+    }
+    if (amountPence > 5_000_000) {
+      setError('A quote can be at most £50,000.00.');
       return;
     }
     await run(
@@ -243,7 +267,7 @@ export const ProviderJobDetailScreen: React.FC<Props> = ({ navigation, route }) 
     }
   };
 
-  if (loading) {
+  if (loading && !job) {
     return (
       <View style={[styles.container, styles.center, { paddingTop: insets.top }]}>
         <ActivityIndicator color={Colors.accent} />
@@ -296,7 +320,12 @@ export const ProviderJobDetailScreen: React.FC<Props> = ({ navigation, route }) 
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <KeyboardStickyView style={{ flex: 1 }}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         {flash ? (
           <View style={styles.successCard}>
             <Ionicons name="checkmark-circle-outline" size={18} color={Colors.accentGreen} />
@@ -400,8 +429,8 @@ export const ProviderJobDetailScreen: React.FC<Props> = ({ navigation, route }) 
             />
 
             <TouchableOpacity
-              style={[styles.primaryButton, (busy === 'quote' || amountPence < 100) && styles.disabled]}
-              disabled={busy === 'quote' || amountPence < 100}
+              style={[styles.primaryButton, busy === 'quote' && styles.disabled]}
+              disabled={busy === 'quote'}
               onPress={() => void sendQuote()}
             >
               {busy === 'quote'
@@ -608,6 +637,7 @@ export const ProviderJobDetailScreen: React.FC<Props> = ({ navigation, route }) 
 
         <View style={{ height: 36 }} />
       </ScrollView>
+      </KeyboardStickyView>
     </View>
   );
 };

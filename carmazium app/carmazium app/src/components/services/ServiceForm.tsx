@@ -1,8 +1,6 @@
 import React from 'react';
 import {
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -19,6 +17,7 @@ import { Colors } from '../../constants/colors';
 import { FontFamily, FontSize } from '../../constants/typography';
 import { Radius } from '../../constants/spacing';
 import { IconButton } from '../IconButton';
+import { KeyboardStickyView } from '../KeyboardStickyView';
 
 /**
  * Shared chrome for the TradeXchange customer forms (post a job, post an
@@ -34,9 +33,9 @@ export const ServiceFormShell: React.FC<{
 }> = ({ title, subtitle, onBack, children }) => {
   const insets = useSafeAreaInsets();
   return (
-    <KeyboardAvoidingView
+    <KeyboardStickyView
+      behavior="padding"
       style={[styles.container, { paddingTop: insets.top }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
       <View style={styles.header}>
@@ -58,7 +57,7 @@ export const ServiceFormShell: React.FC<{
       >
         {children}
       </ScrollView>
-    </KeyboardAvoidingView>
+    </KeyboardStickyView>
   );
 };
 

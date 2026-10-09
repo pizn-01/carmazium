@@ -92,6 +92,27 @@ Matching (postcode areas / lead criteria) → Jobs feed → quote → start → 
 Leads inbox → respond. Record any screen that fails to open or any 4xx from
 `/services/*`.
 
+## 9. Job lifecycle on a phone (keyboard, taps, auto-refresh)
+Two devices or two accounts: a **customer** and an **approved provider**. Use an Android device
+(the keyboard fix targets edge-to-edge) and, if possible, an iPhone.
+
+| # | Step | Expect |
+|---|---|---|
+| 9.1 | Post-a-job form: tap the bottom fields (notes, vehicle year) | Keyboard opens **without covering** the field being typed in |
+| 9.2 | Delivery sheet (Get delivery quotes): tap the postcode box | Sheet rises above the keyboard; POST button still reachable |
+| 9.3 | Post a job, then press back to My Service Jobs | The new job is **already in the list** (no pull-to-refresh) |
+| 9.4 | Provider: open the job, type a price, then tap SEND QUOTE **with the keyboard open** | Quote sends on the **first tap** (it used to only dismiss the keyboard) |
+| 9.5 | Provider: type `1,200` as the price | Accepted as £1,200.00; payout hint shows; no silent dead button |
+| 9.6 | Provider: price `0.50`, then `60000` | Clear message each time (min £1.00 / max £50,000.00) |
+| 9.7 | Provider: send, update, withdraw a quote | Screen does **not blank**; scroll position and typed text stay; success banner appears |
+| 9.8 | Provider returns to the Available list after quoting | Row shows the quote (e.g. "Your quote ...") without a manual refresh |
+| 9.9 | Customer, job open on screen; provider sends a quote | Quote appears within ~15 s with no action |
+| 9.10 | Customer: ACCEPT & PAY, pay in the browser, switch back to the app | Job moves to **PAID** by itself within a few seconds (Stripe returns to the **website**, not the app — you must switch back manually) |
+| 9.11 | Customer ACCEPT & PAY on Android 11+ | Browser opens (no "Could not open secure checkout") |
+| 9.12 | Provider: Start, then Complete (inspection: pick outcome) | Status pill and buttons update after each step without leaving the screen |
+| 9.13 | Customer: sees COMPLETED, confirms, then reviews | Statuses advance to RELEASED and the review card appears without a manual refresh |
+| 9.14 | Turn on airplane mode while on a job screen, wait 30 s, turn it off | No error banner appears; data refreshes once back online |
+
 ## Known limits (by design, not bugs)
 - "On or after" date is typed text; there is no date picker.
 - Verified-dealer-only rules apply to **bidding** (`VerifiedDealerGuard` on the auctions

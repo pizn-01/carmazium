@@ -25,6 +25,7 @@ import {
 } from '../../lib/servicesApi';
 import { IconButton } from '../../components/IconButton';
 import { HamburgerButton } from '../../components/HamburgerButton';
+import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 
 type Props = NativeStackScreenProps<MainStackParamList, 'CustomerServiceJobs'>;
 
@@ -84,6 +85,10 @@ export const CustomerServiceJobsScreen: React.FC<Props> = ({ navigation }) => {
     setNextCursor(null);
     void load('reset');
   }, [load]);
+
+  // Re-fetch when the user comes back to this list (after posting a job, sending
+  // a quote, or leaving the app) — it used to load once on mount and go stale.
+  useAutoRefresh(() => load('reset'));
 
   // Mirrors web's /services/jobs/new chooser: delivery/recovery or inspection.
   const postJob = () =>

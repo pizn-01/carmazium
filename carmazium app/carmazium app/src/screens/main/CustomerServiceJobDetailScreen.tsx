@@ -33,6 +33,8 @@ import {
 import { refuseAuctionAfterInspection } from '../../lib/auctionApi';
 import { getOrCreateServiceJobRoom } from '../../lib/chatApi';
 import { IconButton } from '../../components/IconButton';
+import { KeyboardStickyView } from '../../components/KeyboardStickyView';
+import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 
 type Props = NativeStackScreenProps<MainStackParamList, 'CustomerServiceJobDetail'>;
 
@@ -57,19 +59,33 @@ export const CustomerServiceJobDetailScreen: React.FC<Props> = ({ navigation, ro
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewComment, setReviewComment] = useState('');
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  // `silent` = background refresh (focus, app foreground, polling, after an
+  // action): no spinner, and a failure is ignored rather than shown, so a flaky
+  // connection cannot knock a working screen into an error state.
+  const load = useCallback(async (silent = false) => {
+    if (!silent) {
+      setLoading(true);
+      setError(null);
+    }
     try {
       setJob(await getCustomerServiceJob(jobId));
     } catch (err: any) {
-      setError(err?.message || 'Could not load this service job.');
+      if (!silent) setError(err?.message || 'Could not load this service job.');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [jobId]);
 
   useEffect(() => { void load(); }, [load]);
+
+  // Stripe Checkout returns to the website (backend success_url), never the app,
+  // so after paying the customer switches back by hand. Refreshing on foreground
+  // picks the ACCEPTED -> PAID change up; polling while OPEN shows new quotes as
+  // providers send them, and while ACCEPTED covers the payment webhook landing.
+  useAutoRefresh(
+    () => load(true),
+    { intervalMs: job?.status === 'OPEN' || job?.status === 'ACCEPTED' ? 15_000 : null },
+  );
 
   const activeQuotes = useMemo(
     () => (job?.quotes ?? [])
@@ -89,7 +105,7 @@ export const CustomerServiceJobDetailScreen: React.FC<Props> = ({ navigation, ro
     try {
       await action();
       setFlash(success);
-      await load();
+      await load(true);
     } catch (err: any) {
       setError(err?.message || 'Something went wrong.');
     } finally {
@@ -102,10 +118,8 @@ export const CustomerServiceJobDetailScreen: React.FC<Props> = ({ navigation, ro
     setError(null);
     try {
       const checkoutUrl = await acceptCustomerQuote(jobId, quote.id);
-      const supported = await Linking.canOpenURL(checkoutUrl);
-      if (!supported) throw new Error('Could not open secure checkout.');
       await Linking.openURL(checkoutUrl);
-      setFlash('Checkout opened. Return here after payment and refresh the job status.');
+      setFlash('Checkout opened in your browser. Come back to the app once you have paid — this job updates automatically.');
     } catch (err: any) {
       setError(err?.message || 'Could not open secure checkout.');
     } finally {
@@ -278,9 +292,11 @@ export const CustomerServiceJobDetailScreen: React.FC<Props> = ({ navigation, ro
         </TouchableOpacity>
       </View>
 
+      <KeyboardStickyView style={{ flex: 1 }}>
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         {flash ? (
           <View style={[styles.notice, styles.noticeOk]}>
@@ -601,6 +617,7 @@ export const CustomerServiceJobDetailScreen: React.FC<Props> = ({ navigation, ro
 
         <View style={{ height: 60 }} />
       </ScrollView>
+      </KeyboardStickyView>
     </View>
   );
 };

@@ -18,6 +18,7 @@ import { FontFamily, FontSize } from '../../constants/typography';
 import { Radius } from '../../constants/spacing';
 import { SERVICE_LABELS, ServiceLead, getMyServiceLeadsPage } from '../../lib/servicesApi';
 import { IconButton } from '../../components/IconButton';
+import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 
 type Props = NativeStackScreenProps<MainStackParamList, 'ServiceLeads'>;
 
@@ -61,6 +62,10 @@ export const ServiceLeadsScreen: React.FC<Props> = ({ navigation }) => {
     setNextCursor(null);
     void load('reset');
   }, [load]);
+
+  // Re-fetch when the user comes back to this list (after posting a job, sending
+  // a quote, or leaving the app) — it used to load once on mount and go stale.
+  useAutoRefresh(() => load('reset'));
 
   const renderLead = useCallback(({ item }: { item: ServiceLead }) => (
     <TouchableOpacity

@@ -25,6 +25,7 @@ import {
 } from '../../lib/servicesApi';
 import { IconButton } from '../../components/IconButton';
 import { leadVehicleText } from './ServiceLeadsScreen';
+import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 
 type Props = NativeStackScreenProps<MainStackParamList, 'ServiceLeadDetail'>;
 
@@ -43,26 +44,31 @@ export const ServiceLeadDetailScreen: React.FC<Props> = ({ navigation, route }) 
   const [closing, setClosing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const load = useCallback(async (silent = false) => {
+    if (!silent) {
+      setLoading(true);
+      setError(null);
+    }
     try {
       setLead(await getCustomerServiceLead(leadId));
     } catch (err: any) {
-      setError(err?.message || 'Could not load this enquiry.');
+      if (!silent) setError(err?.message || 'Could not load this enquiry.');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [leadId]);
 
   useEffect(() => { void load(); }, [load]);
+
+  // Providers reply over time; keep an OPEN enquiry current without a manual pull.
+  useAutoRefresh(() => load(true), { intervalMs: lead?.status === 'OPEN' ? 30_000 : null });
 
   const doClose = async () => {
     setClosing(true);
     setError(null);
     try {
       await closeServiceLead(leadId);
-      await load();
+      await load(true);
     } catch (err: any) {
       setError(err?.message || 'Could not close this enquiry.');
     } finally {

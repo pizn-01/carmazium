@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
-  KeyboardAvoidingView,
   Modal,
-  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -18,6 +16,7 @@ import { MainStackParamList } from '../../navigation/MainStackNavigator';
 import { Colors } from '../../constants/colors';
 import { FontFamily, FontSize } from '../../constants/typography';
 import { Radius } from '../../constants/spacing';
+import { KeyboardStickyView } from '../KeyboardStickyView';
 import { PurchaseDeliverySource, createJobFromPurchase } from '../../lib/servicesApi';
 
 type NavProp = NativeStackNavigationProp<MainStackParamList>;
@@ -85,7 +84,7 @@ export const ArrangeDeliveryButton: React.FC<PurchaseDeliverySource & { label?: 
       </TouchableOpacity>
 
       <Modal visible={open} transparent animationType="slide" onRequestClose={close} statusBarTranslucent>
-        <KeyboardAvoidingView style={styles.fill} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <KeyboardStickyView style={styles.fill} behavior="padding">
           <TouchableWithoutFeedback onPress={close}>
             <View style={styles.backdrop} />
           </TouchableWithoutFeedback>
@@ -127,7 +126,7 @@ export const ArrangeDeliveryButton: React.FC<PurchaseDeliverySource & { label?: 
               <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
           </View>
-        </KeyboardAvoidingView>
+        </KeyboardStickyView>
       </Modal>
     </>
   );
