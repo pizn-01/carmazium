@@ -25,6 +25,7 @@ import {
   respondToProviderLead,
 } from '../../lib/servicesApi';
 import { IconButton } from '../../components/IconButton';
+import { KeyboardStickyView } from '../../components/KeyboardStickyView';
 
 type Props = NativeStackScreenProps<MainStackParamList, 'ProviderLeadDetail'>;
 
@@ -52,34 +53,40 @@ export const ProviderLeadDetailScreen: React.FC<Props> = ({ navigation, route })
   const [apr, setApr] = useState('');
   const [term, setTerm] = useState('');
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  // `silent` (after sending a response) keeps the form mounted; only the first
+  // load fills the inputs from the server.
+  const load = useCallback(async (silent = false) => {
+    if (!silent) {
+      setLoading(true);
+      setError(null);
+    }
     try {
       const next = await getProviderServiceLead(leadId);
       setLead(next);
-      setHeadline(next.headline || '');
-      setProductName(next.productName || '');
-      setMessage(next.message || '');
-      setPrice(
-        next.indicativePricePence != null
-          ? (next.indicativePricePence / 100).toFixed(2)
-          : '',
-      );
-      setApr(
-        next.representativeApr != null
-          ? String(next.representativeApr)
-          : '',
-      );
-      setTerm(
-        next.responseTermMonths != null
-          ? String(next.responseTermMonths)
-          : '',
-      );
+      if (!silent) {
+        setHeadline(next.headline || '');
+        setProductName(next.productName || '');
+        setMessage(next.message || '');
+        setPrice(
+          next.indicativePricePence != null
+            ? (next.indicativePricePence / 100).toFixed(2)
+            : '',
+        );
+        setApr(
+          next.representativeApr != null
+            ? String(next.representativeApr)
+            : '',
+        );
+        setTerm(
+          next.responseTermMonths != null
+            ? String(next.responseTermMonths)
+            : '',
+        );
+      }
     } catch (err: any) {
-      setError(err?.message || 'Could not load this enquiry.');
+      if (!silent) setError(err?.message || 'Could not load this enquiry.');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [leadId]);
 
@@ -156,7 +163,7 @@ export const ProviderLeadDetailScreen: React.FC<Props> = ({ navigation, route })
           ? 'Response updated.'
           : 'Response sent to the customer.',
       );
-      await load();
+      await load(true);
     } catch (err: any) {
       setError(err?.message || 'Could not send your response.');
     } finally {
@@ -164,7 +171,7 @@ export const ProviderLeadDetailScreen: React.FC<Props> = ({ navigation, route })
     }
   };
 
-  if (loading) {
+  if (loading && !lead) {
     return (
       <View style={[styles.container, styles.center, { paddingTop: insets.top }]}>
         <ActivityIndicator color={Colors.accent} />
@@ -235,7 +242,8 @@ export const ProviderLeadDetailScreen: React.FC<Props> = ({ navigation, route })
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <KeyboardStickyView style={{ flex: 1 }}>
+<ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {error ? (
           <View style={styles.errorCard}>
             <Ionicons name="alert-circle-outline" size={18} color={Colors.accent} />
@@ -423,6 +431,7 @@ export const ProviderLeadDetailScreen: React.FC<Props> = ({ navigation, route })
 
         <View style={{ height: 36 }} />
       </ScrollView>
+</KeyboardStickyView>
     </View>
   );
 };

@@ -34,6 +34,7 @@ import {
 } from '../../lib/servicesApi';
 import { HamburgerButton } from '../../components/HamburgerButton';
 import { IconButton } from '../../components/IconButton';
+import { KeyboardStickyView } from '../../components/KeyboardStickyView';
 
 type Props = NativeStackScreenProps<MainStackParamList, 'PartnerDashboard'>;
 
@@ -62,30 +63,38 @@ export const PartnerDashboardScreen: React.FC<Props> = ({ navigation }) => {
   const [phone, setPhone] = useState('');
   const [businessAddress, setBusinessAddress] = useState('');
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  // `silent` (app returning to the foreground, or after saving/applying) refreshes
+  // the profile and services only. It used to show a full-screen spinner and then
+  // overwrite the company/phone/address fields with the server's copy, so
+  // switching to Stripe onboarding and back discarded whatever was being typed.
+  const load = useCallback(async (silent = false) => {
+    if (!silent) {
+      setLoading(true);
+      setError(null);
+    }
     try {
       const nextProfile = await getPartnerProfile();
       setProfile(nextProfile);
-      setCompanyName(nextProfile.dealerProfile?.companyName || '');
-      setPhone(nextProfile.dealerProfile?.phone || '');
-      setBusinessAddress(nextProfile.dealerProfile?.businessAddress || '');
+      if (!silent) {
+        setCompanyName(nextProfile.dealerProfile?.companyName || '');
+        setPhone(nextProfile.dealerProfile?.phone || '');
+        setBusinessAddress(nextProfile.dealerProfile?.businessAddress || '');
+      }
 
       if (nextProfile.role === 'DEALER' && nextProfile.dealerProfile) {
         try {
           setTeam(await getPartnerTeam());
         } catch (err: any) {
           setTeam(null);
-          setError(err?.message || 'Could not load Partner services.');
+          if (!silent) setError(err?.message || 'Could not load Partner services.');
         }
       } else {
         setTeam(null);
       }
     } catch (err: any) {
-      setError(err?.message || 'Could not load Partner Account.');
+      if (!silent) setError(err?.message || 'Could not load Partner Account.');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, []);
 
@@ -93,7 +102,7 @@ export const PartnerDashboardScreen: React.FC<Props> = ({ navigation }) => {
 
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state) => {
-      if (state === 'active') void load();
+      if (state === 'active') void load(true);
     });
     return () => sub.remove();
   }, [load]);
@@ -126,7 +135,7 @@ export const PartnerDashboardScreen: React.FC<Props> = ({ navigation }) => {
         businessAddress: businessAddress.trim() || undefined,
       });
       await initializeAuth();
-      await load();
+      await load(true);
     } catch (err: any) {
       setError(err?.message || 'Could not save Partner business details.');
     } finally {
@@ -143,7 +152,7 @@ export const PartnerDashboardScreen: React.FC<Props> = ({ navigation }) => {
     setError(null);
     try {
       await applyPartnerCapability(serviceType);
-      await load();
+      await load(true);
     } catch (err: any) {
       setError(err?.message || 'Could not add this service.');
     } finally {
@@ -188,7 +197,8 @@ export const PartnerDashboardScreen: React.FC<Props> = ({ navigation }) => {
       {loading ? (
         <View style={styles.center}><ActivityIndicator color={Colors.accent} /></View>
       ) : (
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <KeyboardStickyView style={{ flex: 1 }}>
+<ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.hero}>
             <Text style={styles.eyebrow}>TRADEXCHANGE PARTNER</Text>
             <Text style={styles.title}>One business account</Text>
@@ -372,6 +382,7 @@ export const PartnerDashboardScreen: React.FC<Props> = ({ navigation }) => {
 
           <View style={{ height: 48 }} />
         </ScrollView>
+</KeyboardStickyView>
       )}
     </View>
   );

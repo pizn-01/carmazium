@@ -30,6 +30,7 @@ import {
   uploadCapabilityAttachment,
 } from '../../lib/serviceOperationsApi';
 import { IconButton } from '../../components/IconButton';
+import { KeyboardStickyView } from '../../components/KeyboardStickyView';
 
 type Props = NativeStackScreenProps<MainStackParamList, 'ProviderVerification'>;
 
@@ -55,9 +56,13 @@ export const ProviderVerificationScreen: React.FC<Props> = ({ route, navigation 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  // `silent` = refresh after an upload/delete: keep the screen (and the half-filled
+  // evidence form) mounted instead of swapping in a full-screen spinner.
+  const load = useCallback(async (silent = false) => {
+    if (!silent) {
+      setLoading(true);
+      setError(null);
+    }
     try {
       const [mine, verification] = await Promise.all([
         getMyCapabilities(),
@@ -74,9 +79,9 @@ export const ProviderVerificationScreen: React.FC<Props> = ({ route, navigation 
           ?? null;
       });
     } catch (err: any) {
-      setError(err?.message || 'Could not load provider verification.');
+      if (!silent) setError(err?.message || 'Could not load provider verification.');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [capabilityId]);
 
@@ -132,7 +137,7 @@ export const ProviderVerificationScreen: React.FC<Props> = ({ route, navigation 
       setReference('');
       setExpiresAt('');
       setLabel('');
-      await load();
+      await load(true);
       Alert.alert('Uploaded', 'Evidence has been uploaded securely for CarMazium review.');
     } catch (err: any) {
       setError(err?.message || 'Could not upload this document.');
@@ -155,7 +160,7 @@ export const ProviderVerificationScreen: React.FC<Props> = ({ route, navigation 
             setBusy(true);
             try {
               await deleteCapabilityAttachment(capabilityId, entry.id);
-              await load();
+              await load(true);
             } catch (err: any) {
               Alert.alert('Could not delete', err?.message || 'Please try again.');
             } finally {
@@ -177,7 +182,8 @@ export const ProviderVerificationScreen: React.FC<Props> = ({ route, navigation 
       </View>
 
       {loading ? <View style={styles.center}><ActivityIndicator color={Colors.accent} /></View> : (
-        <ScrollView contentContainerStyle={styles.content}>
+        <KeyboardStickyView style={{ flex: 1 }}>
+<ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.content}>
           <Text style={styles.title}>{serviceType ? SERVICE_LABELS[serviceType] : 'Service application'}</Text>
           <Text style={styles.sub}>Complete every required business evidence item before CarMazium approval.</Text>
 
@@ -290,6 +296,7 @@ export const ProviderVerificationScreen: React.FC<Props> = ({ route, navigation 
           ) : null}
           <View style={{ height: 44 }} />
         </ScrollView>
+</KeyboardStickyView>
       )}
     </View>
   );

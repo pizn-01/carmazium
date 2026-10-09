@@ -26,6 +26,7 @@ import {
   updateLeadMatching,
 } from '../../lib/servicesApi';
 import { IconButton } from '../../components/IconButton';
+import { KeyboardStickyView } from '../../components/KeyboardStickyView';
 
 type Props = NativeStackScreenProps<MainStackParamList, 'ProviderMatching'>;
 
@@ -177,7 +178,8 @@ export const ProviderMatchingScreen: React.FC<Props> = ({ route, navigation }) =
       </View>
 
       {loading ? <View style={styles.center}><ActivityIndicator color={Colors.accent} /></View> : (
-        <ScrollView contentContainerStyle={styles.content}>
+        <KeyboardStickyView style={{ flex: 1 }}>
+<ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.content}>
           <Text style={styles.title}>{cap ? SERVICE_LABELS[cap.serviceType] : 'TradeXchange service'}</Text>
           <Text style={styles.sub}>{coverageDescription}</Text>
           {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -248,6 +250,7 @@ export const ProviderMatchingScreen: React.FC<Props> = ({ route, navigation }) =
           ) : null}
           <View style={{ height: 44 }} />
         </ScrollView>
+</KeyboardStickyView>
       )}
     </View>
   );

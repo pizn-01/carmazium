@@ -203,6 +203,7 @@ export const ProviderMessagesScreen: React.FC<Props> = ({ navigation }) => {
         </View>
       ) : (
         <FlatList
+          keyboardShouldPersistTaps="handled"
           data={providerRooms}
           keyExtractor={(room) => room.id}
           renderItem={renderRoom}
